@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from airflow.models.dag import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 import pendulum
 
 def generate_bash_commands(columns: list):
@@ -12,7 +13,16 @@ def generate_bash_commands(columns: list):
         padding = " " * (max_length - len(c))
         cmds.append(f'echo "{c}{padding} : ====> {{{{ {c} }}}}"')
     return "\n".join(cmds)
+
+def print_kwargs(**kwargs):
+    print("kwargs====>", kwargs)
+    for k, v in kwargs.items():
+        print(f"{k} : {v}")
+    # 여기는 파이썬 입니다.
+    # 디스코드 niti 보내던 코드를 여기에 넣으면 돌아감
+    # "<DAG_ID> <TASK_ID> <YYYYMMDDHH> OK / TOM" 형식으로 메시지를 보내보셔요.
     
+ 
 # Directed Acyclic Graph
 with DAG(
     "seoul",
@@ -27,7 +37,12 @@ with DAG(
     
     start = EmptyOperator(task_id="start")
     end = EmptyOperator(task_id="end")
-    send_notification = EmptyOperator(task_id="send_notification")
+    # send_notification = EmptyOperator(task_id="send_notification")
+    send_notification = PythonOperator(
+            task_id="send_notification",
+            python_callable=print_kwargs
+        )
+    
     
     columns_b1 = [
     "data_interval_start", "data_interval_end", "logical_date", "ds", "ds_nodash",
