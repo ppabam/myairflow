@@ -18,8 +18,6 @@ def print_kwargs(**kwargs):
     print("kwargs====>", kwargs)
     for k, v in kwargs.items():
         print(f"{k} : {v}")
-    
-    dag_id = kwargs['dag'].dag_id
     # 여기는 파이썬 입니다.
     # 디스코드 niti 보내던 코드를 여기에 넣으면 돌아감
     # "<DAG_ID> <TASK_ID> <YYYYMMDDHH> OK / TOM" 형식으로 메시지를 보내보셔요.
@@ -102,6 +100,12 @@ with DAG(
     
     start >> b1 >> [b2_1, b2_2] >> mkdir >> end
     mkdir >> send_notification
-
-if __name__ == "__main__":
-    dag.test()
+    
+    # start >> b1
+    # b1 >> [b2_1, b2_2]
+    # [b2_1, b2_2] >> end
+    
+    # start >> b1 >> b2_1
+    # b1 >> b2_2
+    # [b2_1, b2_2] >> end
+    
