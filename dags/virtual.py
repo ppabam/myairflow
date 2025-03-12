@@ -2,11 +2,9 @@ from datetime import datetime, timedelta
 from airflow.models.dag import DAG
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.bash import BashOperator
-from airflow.operators.python import PythonVirtualenvOperator 
+from airflow.operators.python import PythonVirtualenvOperator, PythonOperator 
 import pendulum
 
-
-    
 with DAG(
     "virtual",
     schedule="@hourly",
@@ -20,23 +18,28 @@ with DAG(
     start = EmptyOperator(task_id="start")
     end = EmptyOperator(task_id="end")
     
-    def print_kwargs():
+    def f_python(**kwargs):
         from myairflow.send_notify import send_noti
-        send_noti("python virtualenv operator : TOM")
+        ti = kwargs['data_interval_start'].in_tz('Asia/Seoul').format('YYYYMMDDHH')
+        send_noti(f"time {ti} : TOM python")
     
-    send_notification = PythonVirtualenvOperator(
-            task_id="send_notification",
-            python_callable=print_kwargs,
+    def f_vpython(dis):
+        from myairflow.send_notify import send_noti
+        send_noti(f"time : {dis} : vpython TOM")
+        
+    t_vpython = PythonVirtualenvOperator(
+            task_id="t_vpython",
+            python_callable=f_vpython,
             requirements=[
                 "git+https://github.com/ppabam/myairflow.git@0.1.0"
-            ]
+            ],
+            op_args=["{{ data_interval_start.in_tz('Asia/Seoul').format('YYYYMMDDHH') }}"],
+            provide_context=True
         )
-
-    sleep = BashOperator(task_id="sleep", 
-                         bash_command="sleep 5")
     
+    t_python = PythonOperator(task_id="t_python", python_callable=f_python)
     
-    start >> send_notification >> sleep >> end
+    start >> t_vpython >> t_python >> end
 
 if __name__ == "__main__":
     dag.test()
