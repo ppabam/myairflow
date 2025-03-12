@@ -14,17 +14,26 @@ def generate_bash_commands(columns: list):
         cmds.append(f'echo "{c}{padding} : ====> {{{{ {c} }}}}"')
     return "\n".join(cmds)
 
-def print_kwargs(**kwargs):
-    print("kwargs====>", kwargs)
-    for k, v in kwargs.items():
-        print(f"{k} : {v}")
+def send_noti(msg):
+    import requests
+    import os
+
+    WEBHOOK_ID = os.getenv('DISCORD_WEBHOOK_ID')
+    WEBHOOK_TOKEN = os.getenv('DISCORD_WEBHOOK_TOKEN')
+    WEBHOOK_URL = f"https://discordapp.com/api/webhooks/{WEBHOOK_ID}/{WEBHOOK_TOKEN}"
+    data = { "content": msg }
+    response = requests.post(WEBHOOK_URL, json=data)
+
+    if response.status_code == 204:
+        print("메시지가 성공적으로 전송되었습니다.")
+    else:
+        print(f"에러 발생: {response.status_code}, {response.text}")
+
+def print_kwargs(dag, task, data_interval_start, **kwargs):
+    ds = data_interval_start.in_tz('Asia/Seoul').format('YYYYMMDDHH')
+    msg = f"{dag.dag_id} {task.task_id} {ds} OK / TOM"
+    send_noti(msg)
     
-    dag_id = kwargs['dag'].dag_id
-    # 여기는 파이썬 입니다.
-    # 디스코드 niti 보내던 코드를 여기에 넣으면 돌아감
-    # "<DAG_ID> <TASK_ID> <YYYYMMDDHH> OK / TOM" 형식으로 메시지를 보내보셔요.
-    
- 
 # Directed Acyclic Graph
 with DAG(
     "seoul",

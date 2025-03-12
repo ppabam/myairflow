@@ -25,7 +25,7 @@ def print_kwargs(**kwargs):
  
 # Directed Acyclic Graph
 with DAG(
-    "seoul",
+    "noti",
     schedule="@hourly",
     # start_date=datetime(2025, 3, 10)
     start_date=pendulum.datetime(2025, 3, 11, tz="Asia/Seoul"),
