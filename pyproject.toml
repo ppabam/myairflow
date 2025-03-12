@@ -5,7 +5,7 @@ description = "my first airflow"
 authors = [
     {name = "ppabam", email = "tom@diginori.com"},
 ]
-dependencies = []
+dependencies = ["requests>=2.32.3"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
