@@ -23,7 +23,7 @@ with DAG(
     catchup=True,
     tags=['api', 'movie'],
 ) as dag:
-    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@0.1.0"]
+    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@0.2.5"]
     BASE_DIR = "~/data/movies/dailyboxoffice"
 
     def branch_fun(ds_nodash):
@@ -51,17 +51,17 @@ with DAG(
 
     def common_get_data(ds_nodash, url_param, base_path):
         from movie.api.call import call_api, list2df, save_df
-        print(ds_nodash, url_param)
-        data = call_api(ds_nodash, url_param)
-        df = list2df(data, ds_nodash)
-        save_path = save_df(df, base_path)
-        print(save_path, url_param)
-        # TODO
-        # API 통해 불러온 데이터를
-        # BASE_DIR/dt=20240101/repNationCd=K/****.parquet
-        # STEP 1 - GIT 에서 PIP 를 설치하고
-        # BASE_DIR/dt=20240101/ 먼저 해보고 잘되면!
-        # repNationCd=K/ 등등 도 붙여준다
+        data = call_api(dt=ds_nodash, url_param=url_param)
+        df = list2df(data, ds_nodash, url_param)
+        partitions = ['dt'] + list(url_param.keys())
+        save_path = save_df(df, base_path, partitions)
+
+        print("::group::movie df save...")
+        print("save_path--->" + save_path)
+        print("url_param--->" + str(url_param))
+        print("ds_nodash--->" + ds_nodash)
+        print("::endgroup::")
+
     
     multi_y = PythonVirtualenvOperator(
         task_id='multi.y',
