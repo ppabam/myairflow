@@ -28,7 +28,8 @@ with DAG(
 
     def branch_fun(ds_nodash):
         import os
-        if os.path.exists(f"{BASE_DIR}/dt={ds_nodash}"):
+        check_path = os.path.expanduser(f"{BASE_DIR}/dt={ds_nodash}")
+        if os.path.exists(check_path):
             return rm_dir.task_id   
         else:
             return "get.start", "echo.task"
@@ -49,7 +50,7 @@ with DAG(
     )
 
     def common_get_data(ds_nodash, url_param, base_path):
-        from movie.api.call import gen_url, call_api, list2df, save_df
+        from movie.api.call import call_api, list2df, save_df
         print(ds_nodash, url_param)
         data = call_api(ds_nodash, url_param)
         df = list2df(data, ds_nodash)
@@ -118,9 +119,10 @@ with DAG(
         }
     )
 
-    rm_dir = BashOperator(task_id='rm.dir',
-                          bash_command='rm -rf $BASE_DIR/dt={{ ds_nodash }}',
-                          env={'BASE_DIR': BASE_DIR})
+    rm_dir = BashOperator(
+            task_id='rm.dir',
+            bash_command=f'rm -rf {BASE_DIR}' + '/dt={{ ds_nodash }}')
+          
 
     echo_task = BashOperator(
         task_id='echo.task',
