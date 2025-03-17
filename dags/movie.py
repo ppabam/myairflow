@@ -23,12 +23,14 @@ with DAG(
     catchup=True,
     tags=['api', 'movie'],
 ) as dag:
-    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@0.1.0"]
+    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@0.2.1"]
     BASE_DIR = "~/data/movies/dailyboxoffice"
 
     def branch_fun(ds_nodash):
         import os
-        if os.path.exists(f"{BASE_DIR}/dt={ds_nodash}"):
+        check_path = os.path.expanduser(f"{BASE_DIR}/dt={ds_nodash}")
+        print("check_path", check_path)
+        if os.path.exists(check_path):
             return rm_dir.task_id   
         else:
             return "get.start", "echo.task"
@@ -52,8 +54,8 @@ with DAG(
         from movie.api.call import gen_url, call_api, list2df, save_df
         print(ds_nodash, url_param)
         data = call_api(ds_nodash, url_param)
-        df = list2df(data, ds_nodash)
-        save_path = save_df(df, base_path)
+        df = list2df(data, ds_nodash, url_param)
+        save_path = save_df(df, base_path, ["dt"] + list(url_param.keys()))
         print(save_path, url_param)
         # TODO
         # API 통해 불러온 데이터를
@@ -119,8 +121,7 @@ with DAG(
     )
 
     rm_dir = BashOperator(task_id='rm.dir',
-                          bash_command='rm -rf $BASE_DIR/dt={{ ds_nodash }}',
-                          env={'BASE_DIR': BASE_DIR})
+                          bash_command=f'rm -rf {BASE_DIR}' + '/dt={{ ds_nodash }}')
 
     echo_task = BashOperator(
         task_id='echo.task',
