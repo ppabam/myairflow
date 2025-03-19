@@ -41,6 +41,15 @@ with DAG(
     
     def fn_merge_data(ds_nodash):
         print(ds_nodash)
+        # df read => ~/data/movies/dailyboxoffice/dt=20240101
+        # df1 = fill_na_with_column(df, 'multiMovieYn')
+        # df2 = fill_na_with_column(df1, 'repNationCd')
+        # df3 = df2.drop(columns=['rnum', 'rank', 'rankInten', 'salesShare'])
+        # unique_df = df3.drop_duplicates() # 25
+        # unique_df.loc[:, "rnum"] = unique_df["audiCnt"].rank(ascending=False).astype(int)
+        # unique_df.loc[:, "rank"] = unique_df["audiCnt"].rank(ascending=False).astype(int)
+        # save -> ~/data/movies/dailyboxoffice_merged/dt=20240101
+        
         
     merge_data = PythonVirtualenvOperator(
         task_id='merge.data',
@@ -50,7 +59,7 @@ with DAG(
     )
 
     def common_get_data(ds_nodash, url_param, base_path):
-        from movie.api.call import call_api, list2df, save_df
+        from movie.api.call import call_api, list2df, save_df, gen_url
         data = call_api(dt=ds_nodash, url_param=url_param)
         df = list2df(data, ds_nodash, url_param)
         partitions = ['dt'] + list(url_param.keys())
@@ -60,6 +69,7 @@ with DAG(
         print("save_path--->" + save_path)
         print("url_param--->" + str(url_param))
         print("ds_nodash--->" + ds_nodash)
+        print("gen_url----->" + gen_url(ds_nodash, url_param))
         print("::endgroup::")
 
     
