@@ -27,7 +27,7 @@ with DAG(
     catchup=True,
     tags=["api", "movie", "sensor"],
 ) as dag:
-    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@2503.20.1"]
+    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@2503.20.2"]
     BASE_DIR = f"/home/tom/data/{DAG_ID}"
 
     start = EmptyOperator(task_id="start")
@@ -45,16 +45,17 @@ with DAG(
     def fn_gen_meta(ds_nodash, base_path, **kwargs):
         import pandas as pd
         from movie.api.after import fillna_meta, read_df_or_none, save_with_mkdir
-        
+
         meta_path = f"{base_path}/meta/meta.parquet"
         previous_df = read_df_or_none(meta_path)
-            
-        current_df = pd.read_parquet(f"/home/tom/data/movies/merge/dt={ds_nodash}")[["movieCd", "multiMovieYn", "repNationCd"]]
-        update_meta_df = fillna_meta(previous_df, current_df)
 
+        current_df = pd.read_parquet(f"/home/tom/data/movies/merge/dt={ds_nodash}")[
+            ["movieCd", "multiMovieYn", "repNationCd"]
+        ]
+        update_meta_df = fillna_meta(previous_df, current_df)
+        
         save_with_mkdir(update_meta_df, meta_path)
         print(update_meta_df)
-        
 
     gen_meta = PythonVirtualenvOperator(
         task_id="gen.meta",
@@ -67,18 +68,20 @@ with DAG(
     def fn_gen_movie(ds_nodash, base_path, **kwargs):
         import pandas as pd
         from movie.api.call import save_df
-        
+        from movie.api.after import combine_df
+
         meta_path = f"{base_path}/meta/meta.parquet"
         meta_df = pd.read_parquet(meta_path)
         current_df = pd.read_parquet(f"/home/tom/data/movies/merge/dt={ds_nodash}")
-        merged_df = meta_df.merge(current_df, on="movieCd", how="left", suffixes=("_meta", "_current"))
-        merged_df["multiMovieYn"] = merged_df["multiMovieYn_meta"].combine_first(merged_df["multiMovieYn_current"])
-        merged_df["repNationCd"] = merged_df["repNationCd_meta"].combine_first(merged_df["repNationCd_current"])
-        final_df = merged_df[current_df.columns]
-        final_df['dt'] = ds_nodash
-        save_df(final_df, f'{base_path}/dailyboxoffice', ['dt', 'multiMovieYn', 'repNationCd'])
+
+        final_df = combine_df(meta_df, current_df, ds_nodash)
+
+        save_df(
+            final_df,
+            f"{base_path}/dailyboxoffice",
+            ["dt", "multiMovieYn", "repNationCd"],
+        )
         print(final_df)
-        
 
     gen_movie = PythonVirtualenvOperator(
         task_id="gen.movie",
