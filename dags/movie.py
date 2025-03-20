@@ -47,7 +47,7 @@ with DAG(
         PATH = f"{base_path}/dt={ds_nodash}"
         load_df = pd.read_parquet(PATH)
         df = fill_unique_ranking(load_df, ds_nodash)
-        save_path = save_df(df, f"{base_path}/merge", ['dt'])
+        save_path = save_df(df, base_path.replace("dailyboxoffice", "merge"), ['dt'])
         
         print("::group::movie df merge save...")
         print("save_path--->" + save_path)
