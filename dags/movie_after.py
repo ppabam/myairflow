@@ -27,7 +27,7 @@ with DAG(
     catchup=True,
     tags=["api", "movie", "sensor"],
 ) as dag:
-    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@2503.20.2"]
+    REQUIREMENTS = ["git+https://github.com/ppabam/movie.git@2503.21.2"]
     BASE_DIR = f"/home/tom/data/{DAG_ID}"
 
     start = EmptyOperator(task_id="start")
