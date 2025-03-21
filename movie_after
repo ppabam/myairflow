@@ -1,0 +1,14 @@
+digraph movie_after {
+	graph [label=movie_after labelloc=t rankdir=LR]
+	"check.done" [color="#000000" fillcolor="#91818a" label="check.done" shape=rectangle style="filled,rounded"]
+	end [color="#000000" fillcolor="#e8f7e4" label=end shape=rectangle style="filled,rounded"]
+	"gen.meta" [color="#000000" fillcolor="#ffefeb" label="gen.meta" shape=rectangle style="filled,rounded"]
+	"gen.movie" [color="#000000" fillcolor="#ffefeb" label="gen.movie" shape=rectangle style="filled,rounded"]
+	"make.done" [color="#000000" fillcolor="#f0ede4" label="make.done" shape=rectangle style="filled,rounded"]
+	start [color="#000000" fillcolor="#e8f7e4" label=start shape=rectangle style="filled,rounded"]
+	"check.done" -> "gen.meta"
+	"gen.meta" -> "gen.movie"
+	"gen.movie" -> "make.done"
+	"make.done" -> end
+	start -> "check.done"
+}
