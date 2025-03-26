@@ -27,6 +27,7 @@ with DAG(
     SPARK_HOME="/home/tom/app/spark-3.5.1-bin-hadoop3"
     SCRIPT_BASE="/home/tom/code/myairflow/pyspark"
     META_PATH="/home/tom/data/movie_spark/meta"
+    RAW_BASE="/home/tom/data/movie_after/dailyboxoffice"
 
     start = EmptyOperator(task_id="start")
     end = EmptyOperator(task_id="end", trigger_rule="all_done")
@@ -47,12 +48,13 @@ with DAG(
         task_id='append.meta', 
         bash_command="""
             $SPARK_HOME/bin/spark-submit \
-            $SCRIPT_BASE/movie_meta.py {{ ds_nodash }} append $META_PATH
+            $SCRIPT_BASE/movie_meta.py $RAW_BASE/dt={{ ds_nodash }} append $META_PATH
             """,
         env={
             "SPARK_HOME": SPARK_HOME, 
             "SCRIPT_BASE": SCRIPT_BASE,
-            "META_PATH": META_PATH
+            "META_PATH": META_PATH,
+            "RAW_BASE": RAW_BASE
              }
         )
     
@@ -60,9 +62,14 @@ with DAG(
         task_id='create.meta',
         bash_command="""
             $SPARK_HOME/bin/spark-submit \
-            $SCRIPT_BASE/movie_meta.py {{ ds_nodash }} create $META_PATH
+            $SCRIPT_BASE/movie_meta.py $RAW_BASE/dt={{ ds_nodash }} append $META_PATH
             """,
-        env={"SPARK_HOME": SPARK_HOME, "SCRIPT_BASE": SCRIPT_BASE, "META_PATH": META_PATH}
+        env={
+            "SPARK_HOME": SPARK_HOME, 
+            "SCRIPT_BASE": SCRIPT_BASE,
+            "META_PATH": META_PATH,
+            "RAW_BASE": RAW_BASE
+             }
         )
     
     start >> exists_meta >> append_meta >> end
