@@ -20,7 +20,7 @@ with DAG(
     description="movie spark sbumit",
     schedule="10 10 * * *",
     start_date=datetime(2024, 1, 1),
-    end_date=datetime(2024, 1, 2),
+    end_date=datetime(2025, 1, 1),
     catchup=True,
     tags=["spark", "sbumit", "movie"],
 ) as dag:
@@ -30,7 +30,8 @@ with DAG(
     RAW_BASE="/home/tom/data/movie_after/dailyboxoffice"
 
     start = EmptyOperator(task_id="start")
-    end = EmptyOperator(task_id="end", trigger_rule="all_done")
+    # https://airflow.apache.org/docs/apache-airflow/1.10.9/concepts.html#trigger-rules
+    end = EmptyOperator(task_id="end", trigger_rule="none_failed")
     
     def check_exists_meta():
         import os
@@ -62,7 +63,7 @@ with DAG(
         task_id='create.meta',
         bash_command="""
             $SPARK_HOME/bin/spark-submit \
-            $SCRIPT_BASE/movie_meta.py $RAW_BASE/dt={{ ds_nodash }} append $META_PATH
+            $SCRIPT_BASE/movie_meta.py $RAW_BASE/dt={{ ds_nodash }} create $META_PATH
             """,
         env={
             "SPARK_HOME": SPARK_HOME, 
